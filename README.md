@@ -60,38 +60,6 @@ public class WeatherConfig {
 ```
 Убедитесь, что в application.properties указан правильный API ключ.
 ### Использование
-### 1. Создание и использование клиента погоды (WeatherClient)
-Для работы с данными о погоде используйте класс WeatherClient, который инкапсулирует логику получения и кеширования данных.
-
-Пример создания и использования
-```java
-@Component
-public class WeatherClientApp {
-
-    private final WeatherClient weatherClient;
-
-    @Autowired
-    public WeatherClientApp(WeatherService weatherService) {
-        this.weatherClient = new WeatherClient(weatherService, WeatherClient.Mode.POLLING);
-    }
-
-    public void getWeatherData() {
-        // Пример получения данных
-        JSONObject weather = weatherClient.getWeather("London");
-        System.out.println(weather.toString());
-    }
-}
-```
-### 2. Запуск Spring Boot приложения
-Создайте главный класс для запуска Spring Boot приложения:
-```java
-@SpringBootApplication
-public class WeatherApp {
-    public static void main(String[] args) {
-        SpringApplication.run(WeatherApp.class, args);
-    }
-}
-```
 ### Основные методы
 
 - **`checkCity(String city)`**: Проверяет, есть ли данные о погоде для указанного города в кеше. Если данных нет или они устарели (более 10 минут), они обновляются.
@@ -102,24 +70,27 @@ public class WeatherApp {
 
 ### Пример использования
 
-Пример использования `WeatherClient` в Spring Boot приложении:
+Пример использования `WeatherClient` в приложении:
 
 ```java
-@Component
-public class WeatherClientApp {
+public class WeatherApp {
 
-    private final WeatherClient weatherClient;
-
-    @Autowired
-    public WeatherClientApp(WeatherService weatherService) {
-        this.weatherClient = new WeatherClient(weatherService, WeatherClient.Mode.POLLING);
+    public static void main(String[] args) {
+        var context = new AnnotationConfigApplicationContext(WeatherConfig.class);
+        WeatherService weatherService = context.getBean(WeatherService.class);
+        WeatherClient weatherClient = new WeatherClient(weatherService, WeatherClient.Mode.ON_DEMAND);
+        try {
+            weatherClient.addCity("Paris");
+            weatherClient.addCity("London");
+            weatherClient.removeOldestCity();
+            for(Map.Entry<String, CachedWeatherData> data : weatherClient.getCities().entrySet()){
+                System.out.println(weatherClient.getWeather(data.getKey()).toString(4));
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch weather data: " + e.getMessage());
+        }
     }
 
-    public void getWeatherData() {
-        // Пример получения данных
-        JSONObject weather = weatherClient.getWeather("London");
-        System.out.println(weather.toString());
-    }
 }
 ```
 Результат
