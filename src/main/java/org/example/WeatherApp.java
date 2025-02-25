@@ -15,8 +15,9 @@ public class WeatherApp {
         WeatherService weatherService = context.getBean(WeatherService.class);
         WeatherClient weatherClient = new WeatherClient(weatherService, WeatherClient.Mode.ON_DEMAND);
         try {
-            weatherClient.addCity("London");
             weatherClient.addCity("Paris");
+            weatherClient.addCity("London");
+            weatherClient.removeOldestCity();
             for(Map.Entry<String, CachedWeatherData> data : weatherClient.getCities().entrySet()){
                 System.out.println(weatherClient.getWeather(data.getKey()).toString(4));
             }
